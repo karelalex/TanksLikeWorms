@@ -43,15 +43,16 @@ public class Assets {
     public void loadAssets(ScreenManager.ScreenType type) {
         switch (type) {
             case MENU:
-                createStandardFont(48);
-                assetManager.load("background.png", Texture.class);
-                //assetManager.load("MainPack.pack", TextureAtlas.class);
+                createStandardFont(32);
+                createStandardFont(96);
+                assetManager.load("MainPack.pack", TextureAtlas.class);
                 assetManager.finishLoading();
-                bg = assetManager.get("background.png", Texture.class);
+                atlas = assetManager.get("MainPack.pack", TextureAtlas.class);
                 break;
             case GAME:
                 assetManager.load("MainPack.pack", TextureAtlas.class);
                 createStandardFont(12);
+                createStandardFont(32);
                 assetManager.finishLoading();
                 atlas = assetManager.get("MainPack.pack", TextureAtlas.class);
                 break;

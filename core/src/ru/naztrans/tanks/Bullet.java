@@ -2,9 +2,8 @@ package ru.naztrans.tanks;
 
 import com.badlogic.gdx.math.Vector2;
 
-import java.io.BufferedOutputStream;
 
-public class Bullet {
+public class Bullet implements Poolable{
     private Vector2 position;
     private Vector2 velocity;
     private boolean active;

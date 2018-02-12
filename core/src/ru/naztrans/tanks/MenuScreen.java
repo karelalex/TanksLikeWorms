@@ -2,84 +2,106 @@ package ru.naztrans.tanks;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g3d.particles.influencers.RegionInfluencer;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
-public class MenuScreen implements Screen{
+public class MenuScreen implements Screen {
     private SpriteBatch batch;
-    private BitmapFont font;
-    private Rectangle startGame, exitGame;
-    Texture bg;
-    private ShapeRenderer shapeRenderer;
+
+    private BitmapFont font32;
+    private BitmapFont font96;
+
+    private TextureRegion textureRegionBackground;
+
+    private Stage stage;
+    private Skin skin;
+
     public MenuScreen(SpriteBatch batch) {
-        this.batch=batch;
+        this.batch = batch;
     }
 
     @Override
     public void show() {
-        font = Assets.getInstance().getAssetManager().get("zorque48.ttf", BitmapFont.class);
-        bg=Assets.getInstance().getBackGround();
-        shapeRenderer=new ShapeRenderer();
-        shapeRenderer.setAutoShapeType(true);
-        startGame = new Rectangle();
-        startGame.set(500,500,300, 60);
-        exitGame = new Rectangle();
-        exitGame.set(600, 300, 120,60);
+        textureRegionBackground = Assets.getInstance().getAtlas().findRegion("background");
+        font32 = Assets.getInstance().getAssetManager().get("zorque32.ttf", BitmapFont.class);
+        font96 = Assets.getInstance().getAssetManager().get("zorque96.ttf", BitmapFont.class);
+        createGUI();
+    }
+
+    public void createGUI() {
+        stage = new Stage(ScreenManager.getInstance().getViewport(), batch);
+        skin = new Skin(Assets.getInstance().getAtlas());
+        Gdx.input.setInputProcessor(stage);
+        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.up = skin.getDrawable("menuBtn");
+        textButtonStyle.font = font32;
+        skin.add("tbs", textButtonStyle);
+
+        TextButton btnNewGame = new TextButton("START", skin, "tbs");
+        TextButton btnExitGame = new TextButton("EXIT", skin, "tbs");
+        btnNewGame.setPosition(520, 120);
+        btnExitGame.setPosition(520, 20);
+        stage.addActor(btnNewGame);
+        stage.addActor(btnExitGame);
+        btnNewGame.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                ScreenManager.getInstance().switchScreen(ScreenManager.ScreenType.GAME);
+            }
+        });
+        btnExitGame.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.app.exit();
+            }
+        });
     }
 
     @Override
     public void render(float delta) {
         update(delta);
-        Gdx.gl.glClearColor(1, 1, 1, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        batch.draw(bg, 0, 0);
-
-        font.draw(batch, "Start Game", startGame.x, startGame.y+55); // почему-то буквы рисуются ниже, чем хотелось бы
-        font.draw(batch, "Exit", exitGame.x, exitGame.y+55);
+        batch.draw(textureRegionBackground, 0, 0);
+        font96.draw(batch, "Tanks Game", 0, 320, 1280, 1, false);
         batch.end();
-        shapeRenderer.begin();
-        shapeRenderer.rect(startGame.x, startGame.y, startGame.width, startGame.height);
-        shapeRenderer.rect(exitGame.x, exitGame.y, exitGame.width, exitGame.height);
-        shapeRenderer.end();
+        stage.draw();
     }
 
-    public void update(float dt){
-        if(Gdx.input.isTouched()){
-            if (startGame.contains(Gdx.input.getX(), Gdx.graphics.getHeight()-Gdx.input.getY())){
-                ScreenManager.getInstance().switchScreen(ScreenManager.ScreenType.GAME);
-            }
-            if (exitGame.contains(Gdx.input.getX(), Gdx.graphics.getHeight()-Gdx.input.getY())){
-                Gdx.app.exit();
-            }
-        }
+    public void update(float dt) {
+        stage.act(dt);
     }
+
     @Override
     public void resize(int width, int height) {
-
+        ScreenManager.getInstance().onResize(width, height);
     }
 
     @Override
     public void pause() {
-
     }
 
     @Override
     public void resume() {
-
     }
 
     @Override
     public void hide() {
-
     }
 
     @Override
     public void dispose() {
-
+        skin.dispose();
+        stage.dispose();
     }
 }

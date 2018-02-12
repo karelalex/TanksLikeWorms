@@ -4,54 +4,38 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-public class BulletEmitter {
+public class BulletEmitter extends ObjectPool<Bullet>{
     private TextureRegion bulletTexture;
-    private Bullet[] bullets;
 
-    public Bullet[] getBullets() {
-        return bullets;
+    @Override
+    protected Bullet newObject() {
+        return new Bullet();
     }
 
-    public BulletEmitter() {
+    public BulletEmitter(int size) {
+        super(size);
         bulletTexture = Assets.getInstance().getAtlas().findRegion("ammo");
-        bullets = new Bullet[250];
-        for (int i = 0; i < bullets.length; i++) {
-            bullets[i] = new Bullet();
-        }
-    }
-
-    public boolean empty() {
-        for (int i = 0; i < bullets.length; i++) {
-            if (bullets[i].isActive()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public void render(SpriteBatch batch) {
-        for (int i = 0; i < bullets.length; i++) {
-            if (bullets[i].isActive()) {
-                batch.draw(bulletTexture, bullets[i].getPosition().x - 8, bullets[i].getPosition().y - 8);
-            }
+        for (int i = 0; i < activeList.size(); i++) {
+            batch.draw(bulletTexture, activeList.get(i).getPosition().x - 8, activeList.get(i).getPosition().y - 8);
         }
     }
 
     public void update(float dt) {
-        for (int i = 0; i < bullets.length; i++) {
-            if (bullets[i].isActive()) {
-                bullets[i].update(dt);
-            }
+        for (int i = 0; i < activeList.size(); i++) {
+            activeList.get(i).update(dt);
         }
     }
 
+    public boolean empty() {
+        return getActiveList().size() == 0;
+    }
+
     public Bullet setup(float x, float y, float vx, float vy) {
-        for (int i = 0; i < bullets.length; i++) {
-            if (!bullets[i].isActive()) {
-                bullets[i].activate(x, y, vx, vy);
-                return bullets[i];
-            }
-        }
-        return null;
+        Bullet b = getActiveElement();
+        b.activate(x, y, vx, vy);
+        return b;
     }
 }

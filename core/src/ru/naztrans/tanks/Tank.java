@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public abstract class Tank {
@@ -25,6 +26,11 @@ public abstract class Tank {
     protected boolean makeTurn;
     protected float fuel;
     protected float time;
+    protected float reddish;
+    protected BitmapFont font12;
+    protected Vector2 textPosition;
+    boolean tookDamage;
+    String text;
 
     public boolean isMakeTurn() {
         return makeTurn;
@@ -55,7 +61,7 @@ public abstract class Tank {
         this.game = game;
         this.position = position;
         this.weaponPosition = new Vector2(position).add(0, 0);
-
+        font12 = Assets.getInstance().getAssetManager().get("zorque12.ttf", BitmapFont.class);
         this.textureBase = Assets.getInstance().getAtlas().findRegion("tankBody");
         this.textureTurret = Assets.getInstance().getAtlas().findRegion("tankTurret");
         this.textureTrack = Assets.getInstance().getAtlas().findRegion("tankTrack");
@@ -68,19 +74,32 @@ public abstract class Tank {
         this.maxPower = 1200.0f;
         this.speed = 100.0f;
         this.makeTurn = true;
+        this.reddish = 0.0f;
     }
 
     public void render(SpriteBatch batch) {
+        float tmp = 1.0f;
+        float rtmp = 1.0f;
         if (game.isMyTurn(this)) {
-            float tmp = 0.9f + 0.1f * (float) Math.sin(time * 4);
-            batch.setColor(tmp, tmp, tmp, 1);
-        } else {
-            batch.setColor(1, 1, 1, 1);
+            tmp = 0.9f + 0.1f * (float) Math.sin(time * 4);
+            rtmp = 0.9f + 0.1f * (float) Math.sin(time * 4);
         }
-        batch.draw(textureTurret, weaponPosition.x, weaponPosition.y, textureTurret.getRegionWidth() / 10, textureTurret.getRegionHeight() / 2, textureTurret.getRegionWidth(), textureTurret.getRegionHeight(), 1, 1, turretAngle);
+        tmp *= (1.0f - reddish);
+        batch.setColor(rtmp, tmp, tmp, 1);
+        float t = MathUtils.random(-0.5f, 0.5f);
+        if (game.isMyTurn(this)) {
+            t = MathUtils.random(-2f, 2f);
+        }
+
+        batch.draw(textureTurret, weaponPosition.x, weaponPosition.y + t, textureTurret.getRegionWidth() / 10, textureTurret.getRegionHeight() / 2, textureTurret.getRegionWidth(), textureTurret.getRegionHeight(), 1, 1, turretAngle);
         batch.draw(textureTrack, position.x + 4, position.y);
-        batch.draw(textureBase, position.x, position.y + textureTrack.getRegionHeight() / 3);
+
+        batch.draw(textureBase, position.x, position.y + textureTrack.getRegionHeight() / 3 + t);
         batch.setColor(1, 1, 1, 1);
+        if (tookDamage){
+            font12.draw(batch, text, textPosition.x, textPosition.y);
+        }
+
     }
 
     public void renderHUD(SpriteBatch batch, BitmapFont font) {
@@ -120,6 +139,18 @@ public abstract class Tank {
         if (!checkOnGround()) {
             position.y -= 100.0f * dt;
         }
+        if (reddish > 0.0f) {
+            reddish -= dt;
+        } else {
+
+            reddish = 0.0f;
+        }
+        if (tookDamage){
+            textPosition.add(0, 3);
+            if (textPosition.y>750){
+                tookDamage=false;
+            }
+        }
         this.weaponPosition.set(position).add(34, 45);
         this.hitArea.x = position.x + textureBase.getRegionWidth() / 2;
         this.hitArea.y = position.y + textureBase.getRegionHeight() / 2;
@@ -128,13 +159,17 @@ public abstract class Tank {
 
     public boolean takeDamage(int dmg) {
         hp -= dmg;
+        reddish += 1.0f;
+        position.add(20,30);
+        textPosition=position.cpy().add(30,100);
+        tookDamage=true;
+        text="Damage "+dmg;
         if (hp <= 0) {
             return true;
         }
         return false;
     }
 
-    // C# + XNA
     public boolean checkOnGround(float x, float y) {
         for (int i = 0; i < textureBase.getRegionWidth(); i += 2) {
             if (game.getMap().isGround(x + i, y)) {
