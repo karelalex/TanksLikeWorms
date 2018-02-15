@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -30,6 +31,7 @@ public class GameScreen implements Screen {
     private Stage stage;
     private Skin skin;
     private Group playerJoystick;
+    private ParticleEmitter particleEmitter;
     private BitmapFont font32;
 
     public List<Tank> getPlayers() {
@@ -203,7 +205,7 @@ public class GameScreen implements Screen {
         });
     }
 
-
+    Vector2 v2tmp = new Vector2(0, 0);
     public void update(float dt) {
         playerJoystick.setVisible(getCurrentTank() instanceof PlayerTank);
 
@@ -216,17 +218,32 @@ public class GameScreen implements Screen {
         checkCollisions();
         checkNextTurn();
         bulletEmitter.checkPool();
+
+
+        particleEmitter.update(dt);
+        particleEmitter.checkPool();
     }
 
     public void checkCollisions() {
         List<Bullet> b = bulletEmitter.getActiveList();
         for (int i = 0; i < b.size(); i++) {
             for (int j = 0; j < players.size(); j++) {
+                particleEmitter.setup(b.get(i).getPosition().x, b.get(i).getPosition().y, 0, 0, 0.4f, 1.5f, 0.4f, 1, 0.2f, 0, 1, 1, 1f, 0, 0.5f);
+
                 if (b.get(i).isArmed() && players.get(j).getHitArea().contains(b.get(i).getPosition())) {
-                    float t=players.get(j).getHitArea().x-b.get(i).getPosition().x;
                     b.get(i).deactivate();
+
+                    float t=players.get(j).getHitArea().x-b.get(i).getPosition().x;
                     players.get(j).takeDamage(5, t);
                     map.clearGround(b.get(i).getPosition().x, b.get(i).getPosition().y, 8);
+
+                    for (int k = 0; k < 25; k++) {
+                        v2tmp.set(MathUtils.random(-1f, 1f), MathUtils.random(-1f, 1f));
+                        v2tmp.nor();
+                        v2tmp.scl(MathUtils.random(50f, 120f));
+                        v2tmp.mulAdd(b.get(i).getVelocity(), 0.3f);
+                        particleEmitter.setup(b.get(i).getPosition().x, b.get(i).getPosition().y, v2tmp.x, v2tmp.y, 0.4f, 1.8f, 0.4f, 1, 0, 0, 1, 1, 0.6f, 0, 1);
+                    }
                     continue;
                 }
             }
@@ -235,15 +252,28 @@ public class GameScreen implements Screen {
                 map.clearGround(b.get(i).getPosition().x, b.get(i).getPosition().y, 8);
                 continue;
             }
-            if (b.get(i).getPosition().x < 0 || b.get(i).getPosition().x > 1280 || b.get(i).getPosition().y > 720) {
-                b.get(i).deactivate();
+            Bullet bullet = b.get(i);
+            if (bullet.getPosition().x < 0 || bullet.getPosition().x > 1280 || bullet.getPosition().y > 720) {
+                if (!bullet.isBouncing()) {
+                    bullet.deactivate();
+                } else {
+                    if(bullet.getPosition().x < 0 && bullet.getVelocity().x < 0) {
+                        bullet.getVelocity().x *= -1;
+                    }
+                    if(bullet.getPosition().x > 1280 && bullet.getVelocity().x > 0) {
+                        bullet.getVelocity().x *= -1;
+                    }
+                    if(bullet.getPosition().y > 720 && bullet.getVelocity().y > 0) {
+                        bullet.getVelocity().y *= -1;
+                    }
+                }
             }
         }
     }
 
     public boolean traceCollision(Tank aim, Bullet bullet, float dt) {
         if (bullet.isActive()) {
-            bullet.update(dt);
+            bulletEmitter.updateBullet(bullet, dt);
             if (bullet.isArmed() && aim.getHitArea().contains(bullet.getPosition())) {
                 bullet.deactivate();
                 return true;
@@ -253,13 +283,24 @@ public class GameScreen implements Screen {
                 return false;
             }
             if (bullet.getPosition().x < 0 || bullet.getPosition().x > 1280 || bullet.getPosition().y > 720) {
-                bullet.deactivate();
+                if (!bullet.isBouncing()) {
+                    bullet.deactivate();
+                } else {
+                    if(bullet.getPosition().x < 0 && bullet.getVelocity().x < 0) {
+                        bullet.getVelocity().x *= -1;
+                    }
+                    if(bullet.getPosition().x > 1280 && bullet.getVelocity().x > 0) {
+                        bullet.getVelocity().x *= -1;
+                    }
+                    if(bullet.getPosition().y > 720 && bullet.getVelocity().y > 0) {
+                        bullet.getVelocity().y *= -1;
+                    }
+                }
                 return false;
             }
         }
         return false;
     }
-
     @Override
     public void show() {
         font12 = Assets.getInstance().getAssetManager().get("zorque12.ttf", BitmapFont.class);
