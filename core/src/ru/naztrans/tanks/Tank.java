@@ -157,11 +157,12 @@ public abstract class Tank {
         this.time += dt;
     }
 
-    public boolean takeDamage(int dmg) {
+    public boolean takeDamage(int dmg, float distance) {
         hp -= dmg;
         reddish += 1.0f;
-        position.add(20,30);
-        textPosition=position.cpy().add(30,100);
+        position.add(distance/2,15);
+        System.out.println(distance);
+        textPosition=position.cpy().add(0,100);
         tookDamage=true;
         text="Damage "+dmg;
         if (hp <= 0) {
