@@ -316,6 +316,7 @@ public class GameScreen implements Screen {
         currentPlayerIndex = 0;
         players.get(currentPlayerIndex).takeTurn();
         bulletEmitter = new BulletEmitter(50);
+        particleEmitter = new ParticleEmitter();
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         createGUI();
@@ -389,6 +390,7 @@ public class GameScreen implements Screen {
         for (int i = 0; i < players.size(); i++) {
             players.get(i).renderHUD(batch, font12);
         }
+        particleEmitter.render(batch);
         batch.end();
 //        shapeRenderer.begin();
 //        for (int i = 0; i < players.size(); i++) {

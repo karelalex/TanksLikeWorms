@@ -39,7 +39,7 @@ public class AiTank extends Tank {
                 float ammoVelX = tmpPower * (float) Math.cos(Math.toRadians(tmpAngle));
                 float ammoVelY = tmpPower * (float) Math.sin(Math.toRadians(tmpAngle));
 
-                Bullet tmpBullet = game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY);
+                Bullet tmpBullet = game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY, true, true);
 
                 do {
                     ready = game.traceCollision(aim, tmpBullet, dt);
@@ -57,7 +57,7 @@ public class AiTank extends Tank {
             float ammoVelX = tmpPower * (float) Math.cos(Math.toRadians(turretAngle));
             float ammoVelY = tmpPower * (float) Math.sin(Math.toRadians(turretAngle));
 
-            game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY);
+            game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY, true, true);
             makeTurn = true;
             power = 0.0f;
         }

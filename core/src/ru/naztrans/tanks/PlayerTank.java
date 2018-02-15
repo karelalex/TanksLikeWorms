@@ -52,7 +52,7 @@ public class PlayerTank extends Tank {
                     float ammoVelX = power * (float) Math.cos(Math.toRadians(turretAngle));
                     float ammoVelY = power * (float) Math.sin(Math.toRadians(turretAngle));
 
-                    game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY);
+                    game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY,true,true);
 
                     power = 0.0f;
 

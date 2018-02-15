@@ -25,17 +25,25 @@ public class BulletEmitter extends ObjectPool<Bullet>{
 
     public void update(float dt) {
         for (int i = 0; i < activeList.size(); i++) {
-            activeList.get(i).update(dt);
+            updateBullet(activeList.get(i), dt);
         }
+    }
+
+    public void updateBullet(Bullet b, float dt) {
+        b.addTime(dt);
+        if (b.isGravity()) {
+            b.getVelocity().y -= GameScreen.GLOBAL_GRAVITY * dt;
+        }
+        b.getPosition().mulAdd(b.getVelocity(), dt);
     }
 
     public boolean empty() {
         return getActiveList().size() == 0;
     }
 
-    public Bullet setup(float x, float y, float vx, float vy) {
+    public Bullet setup(float x, float y, float vx, float vy, boolean gravity, boolean bouncing) {
         Bullet b = getActiveElement();
-        b.activate(x, y, vx, vy);
+        b.activate(x, y, vx, vy, gravity, bouncing);
         return b;
     }
 }
