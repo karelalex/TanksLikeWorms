@@ -308,8 +308,8 @@ public class GameScreen implements Screen {
         textureBackground = Assets.getInstance().getAtlas().findRegion("background");
         map = new Map();
         players = new ArrayList<Tank>();
-        players.add(new PlayerTank(this, new Vector2(400, 450)));
-        players.add(new AiTank(this, new Vector2(800, 450)));
+        players.add(new PlayerTank(this, new Vector2(400, 450), Ammo.BALL));
+        players.add(new AiTank(this, new Vector2(800, 450), Ammo.B_STRAIGHT));
         //for (int i = 0; i < 10; i++) {
         //    players.add(new AiTank(this, new Vector2(MathUtils.random(0, 1000), 380)));
         //}

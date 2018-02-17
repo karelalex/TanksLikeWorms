@@ -9,13 +9,15 @@ public class PlayerTank extends Tank {
     }
 
     private Action currentAction;
+    private Ammo ammo;
 
     public void setCurrentAction(Action currentAction) {
         this.currentAction = currentAction;
     }
 
-    public PlayerTank(GameScreen game, Vector2 position) {
+    public PlayerTank(GameScreen game, Vector2 position, Ammo ammo) {
         super(game, position);
+        this.ammo=ammo;
     }
 
     @Override
@@ -52,7 +54,7 @@ public class PlayerTank extends Tank {
                     float ammoVelX = power * (float) Math.cos(Math.toRadians(turretAngle));
                     float ammoVelY = power * (float) Math.sin(Math.toRadians(turretAngle));
 
-                    game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY,true,true);
+                    game.getBulletEmitter().setup(ammoPosX, ammoPosY, ammoVelX, ammoVelY,ammo.isGravity(),ammo.isBounce());
 
                     power = 0.0f;
 
