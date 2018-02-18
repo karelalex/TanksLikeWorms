@@ -398,7 +398,7 @@ public class GameScreen implements Screen {
         }
         bulletEmitter.render(batch);
         for (int i = 0; i < players.size(); i++) {
-            players.get(i).renderHUD(batch, font12);
+            players.get(i).renderHUD(batch, font24);
         }
         particleEmitter.render(batch);
         infoSystem.render(batch,font24);
