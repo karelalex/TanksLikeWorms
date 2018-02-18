@@ -27,10 +27,10 @@ public abstract class Tank {
     protected float fuel;
     protected float time;
     protected float reddish;
-    protected BitmapFont font12;
+
     protected Vector2 textPosition;
     boolean tookDamage;
-    String text;
+
 
     public boolean isMakeTurn() {
         return makeTurn;
@@ -61,7 +61,7 @@ public abstract class Tank {
         this.game = game;
         this.position = position;
         this.weaponPosition = new Vector2(position).add(0, 0);
-        font12 = Assets.getInstance().getAssetManager().get("zorque12.ttf", BitmapFont.class);
+
         this.textureBase = Assets.getInstance().getAtlas().findRegion("tankBody");
         this.textureTurret = Assets.getInstance().getAtlas().findRegion("tankTurret");
         this.textureTrack = Assets.getInstance().getAtlas().findRegion("tankTrack");
@@ -96,9 +96,7 @@ public abstract class Tank {
 
         batch.draw(textureBase, position.x, position.y + textureTrack.getRegionHeight() / 3 + t);
         batch.setColor(1, 1, 1, 1);
-        if (tookDamage){
-            font12.draw(batch, text, textPosition.x, textPosition.y);
-        }
+
 
     }
 
@@ -145,12 +143,7 @@ public abstract class Tank {
 
             reddish = 0.0f;
         }
-        if (tookDamage){
-            textPosition.add(0, 3);
-            if (textPosition.y>750){
-                tookDamage=false;
-            }
-        }
+
         this.weaponPosition.set(position).add(34, 45);
         this.hitArea.x = position.x + textureBase.getRegionWidth() / 2;
         this.hitArea.y = position.y + textureBase.getRegionHeight() / 2;
@@ -162,9 +155,9 @@ public abstract class Tank {
         reddish += 1.0f;
         position.add(distance/2,15);
         System.out.println(distance);
-        textPosition=position.cpy().add(0,100);
+        game.getInfoSystem().addMessage("-"+dmg, position.x+5, position.y+100, FlyingText.Colors.RED);
         tookDamage=true;
-        text="Damage "+dmg;
+
         if (hp <= 0) {
             return true;
         }

@@ -53,6 +53,7 @@ public class Assets {
                 assetManager.load("MainPack.pack", TextureAtlas.class);
                 createStandardFont(12);
                 createStandardFont(32);
+                createStandardFont(24);
                 assetManager.finishLoading();
                 atlas = assetManager.get("MainPack.pack", TextureAtlas.class);
                 break;

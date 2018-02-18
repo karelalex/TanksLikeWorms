@@ -84,7 +84,7 @@ public class Map {
         for (int i = 0; i < WIDTH; i++) {
             for (int j = 0; j < HEIGHT; j++) {
                 if (data[i][j] == 1) {
-                    batch.setColor(0, color[i][j] / 2, 0, 1);
+                    batch.setColor(0, color[i][j] , 0, 1);
                     batch.draw(textureGround, i * CELL_SIZE, j * CELL_SIZE);
                 }
             }

@@ -26,13 +26,20 @@ public class GameScreen implements Screen {
     private ShapeRenderer shapeRenderer;
     private List<Tank> players;
     private int currentPlayerIndex;
-    private BitmapFont font12;
+    private BitmapFont font12, font24, font32;
 
     private Stage stage;
     private Skin skin;
     private Group playerJoystick;
     private ParticleEmitter particleEmitter;
-    private BitmapFont font32;
+
+
+
+    private InfoSystem infoSystem;
+
+    public InfoSystem getInfoSystem() {
+        return infoSystem;
+    }
 
     public List<Tank> getPlayers() {
         return players;
@@ -222,6 +229,7 @@ public class GameScreen implements Screen {
 
         particleEmitter.update(dt);
         particleEmitter.checkPool();
+        infoSystem.update(dt);
     }
 
     public void checkCollisions() {
@@ -305,6 +313,7 @@ public class GameScreen implements Screen {
     public void show() {
         font12 = Assets.getInstance().getAssetManager().get("zorque12.ttf", BitmapFont.class);
         font32 = Assets.getInstance().getAssetManager().get("zorque32.ttf", BitmapFont.class);
+        font24=Assets.getInstance().getAssetManager().get("zorque24.ttf",BitmapFont.class);
         textureBackground = Assets.getInstance().getAtlas().findRegion("background");
         map = new Map();
         players = new ArrayList<Tank>();
@@ -317,6 +326,7 @@ public class GameScreen implements Screen {
         players.get(currentPlayerIndex).takeTurn();
         bulletEmitter = new BulletEmitter(50);
         particleEmitter = new ParticleEmitter();
+        infoSystem=new InfoSystem();
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         createGUI();
@@ -391,6 +401,7 @@ public class GameScreen implements Screen {
             players.get(i).renderHUD(batch, font12);
         }
         particleEmitter.render(batch);
+        infoSystem.render(batch,font24);
         batch.end();
 //        shapeRenderer.begin();
 //        for (int i = 0; i < players.size(); i++) {
