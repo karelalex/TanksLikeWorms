@@ -65,7 +65,7 @@ public abstract class Tank {
         this.textureBase = Assets.getInstance().getAtlas().findRegion("tankBody");
         this.textureTurret = Assets.getInstance().getAtlas().findRegion("tankTurret");
         this.textureTrack = Assets.getInstance().getAtlas().findRegion("tankTrack");
-        this.textureProgressBar = new TextureRegion(Assets.getInstance().getAtlas().findRegion("hbar"), 0, 0, 80, 12);
+        this.textureProgressBar = new TextureRegion(Assets.getInstance().getAtlas().findRegion("bars"), 0, 0, 80, 12);
         this.turretAngle = 0.0f;
         this.maxHp = 100;
         this.hp = this.maxHp;

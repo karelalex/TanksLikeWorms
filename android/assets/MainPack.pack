@@ -10,6 +10,13 @@ background
   orig: 1280, 720
   offset: 0, 0
   index: -1
+clouds
+  rotate: false
+  xy: 1284, 2
+  size: 256, 384
+  orig: 256, 384
+  offset: 0, 0
+  index: -1
 menuBtn
   rotate: false
   xy: 2, 724
@@ -45,16 +52,9 @@ tankBody
   orig: 83, 49
   offset: 0, 0
   index: -1
-hbar
-  rotate: false
-  xy: 87, 970
-  size: 80, 40
-  orig: 80, 40
-  offset: 0, 0
-  index: -1
 tankTrack
   rotate: false
-  xy: 244, 798
+  xy: 87, 970
   size: 74, 35
   orig: 74, 35
   offset: 0, 0

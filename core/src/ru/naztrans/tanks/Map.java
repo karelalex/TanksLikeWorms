@@ -2,22 +2,36 @@ package ru.naztrans.tanks;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector3;
 
 public class Map {
     private TextureRegion textureGround;
+    private TextureRegion[] textureClouds;
     private byte[][] data;
     private float[][] color;
     private float time;
-
+    private Vector3[] clouds;
+    private float windPower;
     private static final int CELL_SIZE = 2;
     private static final int WIDTH = 1280 / CELL_SIZE;
     private static final int HEIGHT = 720 / CELL_SIZE;
 
     public Map() {
-        this.textureGround = new TextureRegion(Assets.getInstance().getAtlas().findRegion("grass"), 8,0,CELL_SIZE,CELL_SIZE);
+        this.textureGround = new TextureRegion(Assets.getInstance().getAtlas().findRegion("grass"));
+        this.textureClouds = new TextureRegion[3];
+        TextureRegion[][] tmp = new TextureRegion(Assets.getInstance().getAtlas().findRegion("clouds")).split(256, 128);
+        for (int i = 0; i < 3; i++) {
+            textureClouds[i] = tmp[i][0];
+        }
         this.data = new byte[WIDTH][HEIGHT];
         this.color = new float[WIDTH][HEIGHT];
         this.generate();
+        this.clouds = new Vector3[14];
+        for (int i = 0; i < clouds.length; i++) {
+            clouds[i] = new Vector3(MathUtils.random(-640, 1280 + 640), MathUtils.random(560, 700), MathUtils.random(0, 2));
+        }
+        this.windPower = 20.0f;
     }
 
     public void generate() {
@@ -38,7 +52,11 @@ public class Map {
                 }
             }
         }
+
         batch.setColor(1, 1, 1, 1);
+        for (int i = 0; i < clouds.length; i++) {
+            batch.draw(textureClouds[(int) clouds[i].z], clouds[i].x, clouds[i].y);
+        }
     }
 
     public void drop() {
@@ -95,6 +113,15 @@ public class Map {
 
     public void update(float dt) {
         time += dt;
+        for (int i = 0; i < clouds.length; i++) {
+            clouds[i].x += windPower * dt;
+            if (clouds[i].x < -640) {
+                clouds[i].set(MathUtils.random(1280, 1280 + 640), MathUtils.random(560, 700), MathUtils.random(0, 2));
+            }
+            if (clouds[i].x > 1280 + 640) {
+                clouds[i].set(MathUtils.random(-640, -256), MathUtils.random(560, 700), MathUtils.random(0, 2));
+            }
+        }
         if (time > 0.5f) {
             drop();
         }
