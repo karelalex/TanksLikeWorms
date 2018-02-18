@@ -4,32 +4,23 @@ import com.badlogic.gdx.math.Vector2;
 
 
 public class Bullet implements Poolable{
+    private BulletEmitter.BulletType type;
     private Vector2 position;
-
-    public Vector2 getVelocity() {
-        return velocity;
-    }
-
     private Vector2 velocity;
     private boolean active;
-
     private float time;
-    private boolean bouncing;
 
-    public boolean isBouncing() {
-        return bouncing;
-    }
 
-    public boolean isGravity() {
-        return gravity;
-    }
-
-    private boolean gravity;
 
     public Vector2 getPosition() {
         return position;
     }
-
+    public BulletEmitter.BulletType getType() {
+        return type;
+    }
+    public Vector2 getVelocity() {
+        return velocity;
+    }
     public boolean isActive() {
         return active;
     }
@@ -42,7 +33,7 @@ public class Bullet implements Poolable{
         position = new Vector2(0, 0);
         velocity = new Vector2(0, 0);
         active = false;
-        //angle = 0.0f;
+        type = BulletEmitter.BulletType.LIGHT_AMMO;
         time = 0.0f;
     }
 
@@ -50,16 +41,18 @@ public class Bullet implements Poolable{
         active = false;
     }
 
-    public void activate(float x, float y, float vx, float vy, boolean gravity, boolean bouncing) {
-        position.set(x, y);
-        velocity.set(vx, vy);
-        active = true;
-        time = 0.0f;
-        this.gravity = gravity;
-        this.bouncing = bouncing;
+    public void activate(BulletEmitter.BulletType type, float x, float y, float vx, float vy) {
+        this.type = type;
+        this.position.set(x, y);
+        this.velocity.set(vx, vy);
+        this.active = true;
+        this.time = 0.0f;
     }
 
     public void addTime(float dt) {
         time += dt;
+        if (time > type.getMaxTime()) {
+            deactivate();
+        }
     }
 }

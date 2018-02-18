@@ -3,6 +3,7 @@ package ru.naztrans.tanks;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -51,6 +52,7 @@ public class Assets {
                 break;
             case GAME:
                 assetManager.load("MainPack.pack", TextureAtlas.class);
+                assetManager.load("explosion.wav", Sound.class);
                 createStandardFont(12);
                 createStandardFont(32);
                 createStandardFont(24);

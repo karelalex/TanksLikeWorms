@@ -1,6 +1,11 @@
 package ru.naztrans.tanks;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -8,17 +13,20 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameScreen implements Screen {
+    private final int BOTS_COUNT = 5;
     private SpriteBatch batch;
     private TextureRegion textureBackground;
     private Map map;
@@ -31,11 +39,19 @@ public class GameScreen implements Screen {
     private Stage stage;
     private Skin skin;
     private Group playerJoystick;
+    private Sound soundExplosion;
+    private boolean gameOver;
+    private boolean paused;
+
+
     private ParticleEmitter particleEmitter;
 
 
-
     private InfoSystem infoSystem;
+
+    public ParticleEmitter getParticleEmitter() {
+        return particleEmitter;
+    }
 
     public InfoSystem getInfoSystem() {
         return infoSystem;
@@ -68,6 +84,10 @@ public class GameScreen implements Screen {
     }
 
     public void checkNextTurn() {
+        if (players.size() == 1) {
+            gameOver = true;
+            return;
+        }
         if (!players.get(currentPlayerIndex).makeTurn) {
             return;
         }
@@ -98,13 +118,18 @@ public class GameScreen implements Screen {
         TextButton btnUp = new TextButton("UP", skin, "tbs");
         TextButton btnDown = new TextButton("DOWN", skin, "tbs");
         TextButton btnFire = new TextButton("FIRE", skin, "tbs");
-//        TextButton btnExit = new TextButton("EXIT", skin, "tbs");
+        TextButton btnRestart = new TextButton("RESTART", skin, "tbs");
+        TextButton btnPause = new TextButton("II", skin, "tbs");
+       TextButton btnExit = new TextButton("EXIT", skin, "tbs");
 
         btnLeft.setPosition(20, 140);
         btnRight.setPosition(300, 140);
         btnUp.setPosition(140, 240);
         btnDown.setPosition(140, 40);
-        btnFire.setPosition(1000, 140);
+        btnFire.setPosition(1060, 100);
+        btnExit.setPosition(1060, 600);
+        btnRestart.setPosition(880, 600);
+        btnPause.setPosition(700, 600);
 
         playerJoystick.addActor(btnLeft);
         playerJoystick.addActor(btnRight);
@@ -113,6 +138,29 @@ public class GameScreen implements Screen {
         playerJoystick.addActor(btnFire);
 
         stage.addActor(playerJoystick);
+        stage.addActor(btnExit);
+        stage.addActor(btnRestart);
+        stage.addActor(btnPause);
+        btnExit.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                ScreenManager.getInstance().switchScreen(ScreenManager.ScreenType.MENU);
+            }
+        });
+
+        btnPause.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                paused = !paused;
+            }
+        });
+
+        btnRestart.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                restart();
+            }
+        });
 
         btnLeft.addListener(new ClickListener() {
             @Override
@@ -213,23 +261,28 @@ public class GameScreen implements Screen {
     }
 
     Vector2 v2tmp = new Vector2(0, 0);
+
     public void update(float dt) {
-        playerJoystick.setVisible(getCurrentTank() instanceof PlayerTank);
+        if (!gameOver&& !paused) {
+            playerJoystick.setVisible(getCurrentTank() instanceof PlayerTank);
 
-        stage.act(dt);
-        map.update(dt);
-        for (int i = 0; i < players.size(); i++) {
-            players.get(i).update(dt);
+
+            stage.act(dt);
+            map.update(dt);
+            for (int i = 0; i < players.size(); i++) {
+                players.get(i).update(dt);
+            }
+            bulletEmitter.update(dt);
+            checkCollisions();
+            checkNextTurn();
+            bulletEmitter.checkPool();
+
+
+            particleEmitter.update(dt);
+            particleEmitter.checkPool();
+            infoSystem.update(dt);
         }
-        bulletEmitter.update(dt);
-        checkCollisions();
-        checkNextTurn();
-        bulletEmitter.checkPool();
 
-
-        particleEmitter.update(dt);
-        particleEmitter.checkPool();
-        infoSystem.update(dt);
     }
 
     public void checkCollisions() {
@@ -241,8 +294,10 @@ public class GameScreen implements Screen {
                 if (b.get(i).isArmed() && players.get(j).getHitArea().contains(b.get(i).getPosition())) {
                     b.get(i).deactivate();
 
-                    float t=players.get(j).getHitArea().x-b.get(i).getPosition().x;
-                    players.get(j).takeDamage(5, t);
+                    float t = players.get(j).getHitArea().x - b.get(i).getPosition().x;
+                    if (players.get(j).takeDamage(25, t)) {
+                        destroyPlayer(players.get(j));
+                    }
                     map.clearGround(b.get(i).getPosition().x, b.get(i).getPosition().y, 8);
 
                     for (int k = 0; k < 25; k++) {
@@ -262,16 +317,16 @@ public class GameScreen implements Screen {
             }
             Bullet bullet = b.get(i);
             if (bullet.getPosition().x < 0 || bullet.getPosition().x > 1280 || bullet.getPosition().y > 720) {
-                if (!bullet.isBouncing()) {
+                if (!bullet.getType().isBouncing()) {
                     bullet.deactivate();
                 } else {
-                    if(bullet.getPosition().x < 0 && bullet.getVelocity().x < 0) {
+                    if (bullet.getPosition().x < 0 && bullet.getVelocity().x < 0) {
                         bullet.getVelocity().x *= -1;
                     }
-                    if(bullet.getPosition().x > 1280 && bullet.getVelocity().x > 0) {
+                    if (bullet.getPosition().x > 1280 && bullet.getVelocity().x > 0) {
                         bullet.getVelocity().x *= -1;
                     }
-                    if(bullet.getPosition().y > 720 && bullet.getVelocity().y > 0) {
+                    if (bullet.getPosition().y > 720 && bullet.getVelocity().y > 0) {
                         bullet.getVelocity().y *= -1;
                     }
                 }
@@ -281,7 +336,7 @@ public class GameScreen implements Screen {
 
     public boolean traceCollision(Tank aim, Bullet bullet, float dt) {
         if (bullet.isActive()) {
-            bulletEmitter.updateBullet(bullet, dt);
+            bulletEmitter.updateBullet(bullet, dt, true);
             if (bullet.isArmed() && aim.getHitArea().contains(bullet.getPosition())) {
                 bullet.deactivate();
                 return true;
@@ -291,16 +346,16 @@ public class GameScreen implements Screen {
                 return false;
             }
             if (bullet.getPosition().x < 0 || bullet.getPosition().x > 1280 || bullet.getPosition().y > 720) {
-                if (!bullet.isBouncing()) {
+                if (!bullet.getType().isBouncing()) {
                     bullet.deactivate();
                 } else {
-                    if(bullet.getPosition().x < 0 && bullet.getVelocity().x < 0) {
+                    if (bullet.getPosition().x < 0 && bullet.getVelocity().x < 0) {
                         bullet.getVelocity().x *= -1;
                     }
-                    if(bullet.getPosition().x > 1280 && bullet.getVelocity().x > 0) {
+                    if (bullet.getPosition().x > 1280 && bullet.getVelocity().x > 0) {
                         bullet.getVelocity().x *= -1;
                     }
-                    if(bullet.getPosition().y > 720 && bullet.getVelocity().y > 0) {
+                    if (bullet.getPosition().y > 720 && bullet.getVelocity().y > 0) {
                         bullet.getVelocity().y *= -1;
                     }
                 }
@@ -309,24 +364,29 @@ public class GameScreen implements Screen {
         }
         return false;
     }
+
+    public void destroyPlayer(Tank tank) {
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i) == tank) {
+                players.remove(i);
+                soundExplosion.play();
+                if (i < currentPlayerIndex) {
+                    currentPlayerIndex--;
+                }
+                particleEmitter.makeExplosion(tank.getHitArea().x, tank.getHitArea().y);
+            }
+        }
+    }
+
     @Override
     public void show() {
         font12 = Assets.getInstance().getAssetManager().get("zorque12.ttf", BitmapFont.class);
         font32 = Assets.getInstance().getAssetManager().get("zorque32.ttf", BitmapFont.class);
-        font24=Assets.getInstance().getAssetManager().get("zorque24.ttf",BitmapFont.class);
+        font24 = Assets.getInstance().getAssetManager().get("zorque24.ttf", BitmapFont.class);
         textureBackground = Assets.getInstance().getAtlas().findRegion("background");
-        map = new Map();
-        players = new ArrayList<Tank>();
-        players.add(new PlayerTank(this, new Vector2(400, 450), Ammo.BALL));
-        players.add(new AiTank(this, new Vector2(800, 450), Ammo.B_STRAIGHT));
-        //for (int i = 0; i < 10; i++) {
-        //    players.add(new AiTank(this, new Vector2(MathUtils.random(0, 1000), 380)));
-        //}
-        currentPlayerIndex = 0;
-        players.get(currentPlayerIndex).takeTurn();
-        bulletEmitter = new BulletEmitter(50);
-        particleEmitter = new ParticleEmitter();
-        infoSystem=new InfoSystem();
+        soundExplosion = Assets.getInstance().getAssetManager().get("explosion.wav", Sound.class);
+        restart();
+
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         createGUI();
@@ -385,6 +445,43 @@ public class GameScreen implements Screen {
         Gdx.input.setInputProcessor(im);
     }
 
+    public void restart() {
+        map = new Map();
+        players = new ArrayList<Tank>();
+        gameOver = false;
+        paused = false;
+        players.add(new PlayerTank(this, new Vector2(120, 800), BulletEmitter.BulletType.LIGHT_AMMO));
+        players.add(new PlayerTank(this, new Vector2(780, 800), BulletEmitter.BulletType.LASER));
+        for (int i = 0; i < BOTS_COUNT; i++) {
+            Tank tank = new AiTank(this, new Vector2(0, 0), BulletEmitter.BulletType.LASER);
+            players.add(tank);
+            boolean collision = false;
+            do {
+                collision = false;
+                int posX = MathUtils.random(0, 1100);
+                tank.getPosition().set(posX, 800);
+                System.out.println("позиция свежего танка " + posX);
+
+                for (int j = 0; j < players.size() - 1; j++) {
+                    //for (int k = j + 1; k < players.size(); k++) {
+                    float pos1 = players.get(j).getPosition().x;
+                    float pos2 = tank.getPosition().x;
+                    System.out.println(pos1 + " " + tank.textureBase.getRegionWidth() + " " + pos2);
+                    if (pos2 > (pos1 - tank.textureBase.getRegionWidth()) && pos2 < (pos1 + tank.textureBase.getRegionWidth())) {
+                        collision = true;
+                        System.out.println("татата");
+                    }
+                    //}
+                }
+            } while (collision);
+        }
+        currentPlayerIndex = 0;
+        players.get(currentPlayerIndex).takeTurn();
+        bulletEmitter = new BulletEmitter(this, 50);
+        infoSystem = new InfoSystem();
+        particleEmitter = new ParticleEmitter();
+    }
+
     @Override
     public void render(float delta) {
         update(delta);
@@ -401,7 +498,7 @@ public class GameScreen implements Screen {
             players.get(i).renderHUD(batch, font24);
         }
         particleEmitter.render(batch);
-        infoSystem.render(batch,font24);
+        infoSystem.render(batch, font24);
         batch.end();
 //        shapeRenderer.begin();
 //        for (int i = 0; i < players.size(); i++) {

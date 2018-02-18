@@ -15,6 +15,11 @@ public abstract class Tank {
     protected TextureRegion hudBarBack;
     protected TextureRegion hudBarPower;
     protected TextureRegion hudBarHp;
+
+    public Vector2 getPosition() {
+        return position;
+    }
+
     protected Vector2 position;
     protected Vector2 weaponPosition;
     protected GameScreen game;
@@ -137,6 +142,9 @@ public abstract class Tank {
                 }
             }
             fuel -= dt;
+            for (int i = 0; i < textureBase.getRegionWidth(); i += 8) {
+                game.getParticleEmitter().setup(position.x + i, position.y, MathUtils.random(60, 120) * -n, MathUtils.random(0, 40), 0.25f, 2, 2, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.1f);
+            }
         }
     }
 
