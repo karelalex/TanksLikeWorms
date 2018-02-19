@@ -81,11 +81,12 @@ public class Map {
     }
 
     public void render(SpriteBatch batch) {
+        batch.setColor(1, 1, 1, 1);
         for (int i = 0; i < WIDTH; i++) {
             for (int j = 0; j < HEIGHT; j++) {
                 if (data[i][j] == 1) {
                     batch.setColor(0, color[i][j] , 0, 1);
-                    batch.draw(textureGround, i * CELL_SIZE, j * CELL_SIZE);
+                    batch.draw(textureGround, i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE,CELL_SIZE);
                 }
             }
         }

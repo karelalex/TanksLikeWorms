@@ -15,8 +15,8 @@ public class PlayerTank extends Tank {
         this.currentAction = currentAction;
     }
 
-    public PlayerTank(GameScreen game, Vector2 position, BulletEmitter.BulletType ammo) {
-        super(game, position);
+    public PlayerTank(GameScreen game, Vector2 position, BulletEmitter.BulletType ammo, Team team) {
+        super(game, position, team);
         this.ammo=ammo;
     }
 

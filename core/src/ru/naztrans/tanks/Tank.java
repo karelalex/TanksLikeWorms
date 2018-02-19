@@ -16,6 +16,12 @@ public abstract class Tank {
     protected TextureRegion hudBarPower;
     protected TextureRegion hudBarHp;
 
+    public Team getTeam() {
+        return team;
+    }
+
+    protected Team team;
+
     public Vector2 getPosition() {
         return position;
     }
@@ -34,10 +40,11 @@ public abstract class Tank {
     protected float fuel;
     protected float time;
     protected float reddish;
+
     protected StringBuilder tmpStringBuilder=new StringBuilder();
 
     protected Vector2 textPosition;
-    boolean tookDamage;
+    private boolean tookDamage;
 
 
     public boolean isMakeTurn() {
@@ -63,10 +70,12 @@ public abstract class Tank {
     public void takeTurn() {
         makeTurn = false;
         fuel = 0.8f;
+        game.getInfoSystem().addMessage("My turn", position.x, position.y+200, FlyingText.Colors.GREEN);
     }
 
-    public Tank(GameScreen game, Vector2 position) {
+    public Tank(GameScreen game, Vector2 position, Team team) {
         this.game = game;
+        this.team = team;
         this.position = position;
         this.weaponPosition = new Vector2(position).add(0, 0);
         this.hudBarBack = new TextureRegion(Assets.getInstance().getAtlas().findRegion("bars"), 0, 0, 80, 24);
@@ -110,7 +119,7 @@ public abstract class Tank {
 
     }
 
-    public void renderHUD(SpriteBatch batch, BitmapFont font) {
+    public void renderHUD(SpriteBatch batch, BitmapFont font, BitmapFont font2) {
         //batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         batch.draw(hudBarBack, position.x, position.y + 80, 80, 24);
         batch.draw(hudBarHp, position.x + 2, position.y + 80, (int) (76 * (float) hp / maxHp), 24);
@@ -121,6 +130,9 @@ public abstract class Tank {
         tmpStringBuilder.setLength(0);
         tmpStringBuilder.append(hp);
         font.draw(batch, tmpStringBuilder, position.x, position.y + 100, 85, 1, false);
+        tmpStringBuilder.setLength(0);
+        tmpStringBuilder.append(this.team.getName());
+        font2.draw(batch, tmpStringBuilder,position.x, position.y + 150, 85,1, false);
         if (power > 100.0f) {
             batch.draw(hudBarBack, position.x, position.y + 104, 80, 24);
             batch.draw(hudBarPower, position.x + 2, position.y + 104, (int) (76 * power / maxPower), 24);

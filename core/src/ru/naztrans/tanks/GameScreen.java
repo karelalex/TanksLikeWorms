@@ -42,6 +42,7 @@ public class GameScreen implements Screen {
     private Sound soundExplosion;
     private boolean gameOver;
     private boolean paused;
+    private Team[] teams;
 
 
     private ParticleEmitter particleEmitter;
@@ -84,10 +85,7 @@ public class GameScreen implements Screen {
     }
 
     public void checkNextTurn() {
-        if (players.size() == 1) {
-            gameOver = true;
-            return;
-        }
+
         if (!players.get(currentPlayerIndex).makeTurn) {
             return;
         }
@@ -109,7 +107,7 @@ public class GameScreen implements Screen {
         playerJoystick = new Group();
         Gdx.input.setInputProcessor(stage);
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-        textButtonStyle.up = skin.getDrawable("menuBtn");
+        textButtonStyle.up = skin.getDrawable("btn2");
         textButtonStyle.font = font32;
         skin.add("tbs", textButtonStyle);
 
@@ -369,12 +367,27 @@ public class GameScreen implements Screen {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i) == tank) {
                 players.remove(i);
+                tank.getTeam().minusTank();
                 soundExplosion.play();
                 if (i < currentPlayerIndex) {
                     currentPlayerIndex--;
                 }
                 particleEmitter.makeExplosion(tank.getHitArea().x, tank.getHitArea().y);
             }
+        }
+        int teamsCounter=0;
+        int liveTeam=-1;
+        for (int i=0; i<teams.length; i++)
+        {
+            if(teams[i].getAlive()>0){
+                teamsCounter++;
+                liveTeam=i;
+            }
+        }
+        if (teamsCounter <= 1) {
+            infoSystem.addMessage(teams[liveTeam].getName()+" wins", 600, 350, FlyingText.Colors.WHITE);
+            gameOver = true;
+            return;
         }
     }
 
@@ -385,6 +398,7 @@ public class GameScreen implements Screen {
         font24 = Assets.getInstance().getAssetManager().get("zorque24.ttf", BitmapFont.class);
         textureBackground = Assets.getInstance().getAtlas().findRegion("background");
         soundExplosion = Assets.getInstance().getAssetManager().get("explosion.wav", Sound.class);
+
         restart();
 
         shapeRenderer = new ShapeRenderer();
@@ -448,38 +462,42 @@ public class GameScreen implements Screen {
     public void restart() {
         map = new Map();
         players = new ArrayList<Tank>();
+        bulletEmitter = new BulletEmitter(this, 50);
+        infoSystem = new InfoSystem();
+        particleEmitter = new ParticleEmitter();
         gameOver = false;
         paused = false;
-        players.add(new PlayerTank(this, new Vector2(120, 800), BulletEmitter.BulletType.LIGHT_AMMO));
-        players.add(new PlayerTank(this, new Vector2(780, 800), BulletEmitter.BulletType.LASER));
-        for (int i = 0; i < BOTS_COUNT; i++) {
-            Tank tank = new AiTank(this, new Vector2(0, 0), BulletEmitter.BulletType.LASER);
-            players.add(tank);
+        teams= new Team[2];
+        teams[0]=new Team("Gays", 1, 2, this, BulletEmitter.BulletType.LASER);
+        teams[1]=new Team("Naturals", 2, 1, this, BulletEmitter.BulletType.LASER);
+        players.addAll(teams[0].getTanks());
+        players.addAll(teams[1].getTanks());
+        System.out.println("размер массива игроков "+players.size());
+        for (int i = 0; i < players.size(); i++) {
+
             boolean collision = false;
             do {
                 collision = false;
                 int posX = MathUtils.random(0, 1100);
-                tank.getPosition().set(posX, 800);
+
                 System.out.println("позиция свежего танка " + posX);
 
-                for (int j = 0; j < players.size() - 1; j++) {
+                for (int j = 0; j < i; j++) {
                     //for (int k = j + 1; k < players.size(); k++) {
                     float pos1 = players.get(j).getPosition().x;
-                    float pos2 = tank.getPosition().x;
-                    System.out.println(pos1 + " " + tank.textureBase.getRegionWidth() + " " + pos2);
-                    if (pos2 > (pos1 - tank.textureBase.getRegionWidth()) && pos2 < (pos1 + tank.textureBase.getRegionWidth())) {
+                    if (posX > (pos1 - players.get(i).textureBase.getRegionWidth()) && posX < (pos1 + players.get(j).textureBase.getRegionWidth())) {
                         collision = true;
                         System.out.println("татата");
                     }
                     //}
                 }
+                players.get(i).getPosition().set(posX, 800);
             } while (collision);
+
         }
         currentPlayerIndex = 0;
         players.get(currentPlayerIndex).takeTurn();
-        bulletEmitter = new BulletEmitter(this, 50);
-        infoSystem = new InfoSystem();
-        particleEmitter = new ParticleEmitter();
+
     }
 
     @Override
@@ -495,7 +513,7 @@ public class GameScreen implements Screen {
         }
         bulletEmitter.render(batch);
         for (int i = 0; i < players.size(); i++) {
-            players.get(i).renderHUD(batch, font24);
+            players.get(i).renderHUD(batch, font24, font12);
         }
         particleEmitter.render(batch);
         infoSystem.render(batch, font24);
